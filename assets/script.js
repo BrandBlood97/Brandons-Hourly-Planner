@@ -1,23 +1,85 @@
-// Wrap all code that interacts with the DOM in a call to jQuery to ensure that
-// the code isn't run until the browser has finished rendering all the elements
-// in the html.
 $(function () {
-    // TODO: Add a listener for click events on the save button. This code should
-    // use the id in the containing time-block as a key to save the user input in
-    // local storage. HINT: What does `this` reference in the click listener
-    // function? How can DOM traversal be used to get the "hour-x" id of the
-    // time-block containing the button that was clicked? How might the id be
-    // useful when saving the description in local storage?
-    //
-    // TODO: Add code to apply the past, present, or future class to each time
-    // block by comparing the id to the current hour. HINTS: How can the id
-    // attribute of each time-block be used to conditionally add or remove the
-    // past, present, and future classes? How can Day.js be used to get the
-    // current hour in 24-hour time?
-    //
-    // TODO: Add code to get any user input that was saved in localStorage and set
-    // the values of the corresponding textarea elements. HINT: How can the id
-    // attribute of each time-block be used to do this?
-    //
-    // TODO: Add code to display the current date in the header of the page.
-  });
+  //Variable declarations
+  var currentDayDisplay = document.querySelector("#currentDay");
+  var calendarDisplay = document.querySelector("#calendar");
+  var timeBlocks = document.querySelectorAll(".time-block");
+  var saveButtons = document.querySelectorAll(".saveBtn");
+  var clearButton = document.querySelector("#clearBtn");
+
+  //Gets current date and hour
+  var date = dayjs();
+  var currentHour = dayjs().hour();
+
+  //Displays current date on the page
+  $(currentDayDisplay).text(date.format("MMMM D, YYYY"));
+
+  //Renders colors on the calendar when the page is loaded based on current time
+  setCalendarDisplay();
+  //Renders description on calendar when the page is loaded
+  renderDescription();
+
+  //When save button clicked, save description to local storage
+  function handleSubmit() {
+    var parentID = $(this).parent().attr("id");
+
+    var descriptionBox = $("#" + parentID).children(".description");
+
+    var description = descriptionBox.val();
+
+    localStorage.setItem("Description-" + parentID, description);
+
+    setCalendarDisplay();
+    renderDescription();
+  }
+
+  //Renders colors on the calendar when the page is loaded based on current time
+  function setCalendarDisplay() {
+    for (let i = 0; i < timeBlocks.length; i++) {
+      var timeBlock = $(timeBlocks[i]);
+      var timeBlockID = $(timeBlocks[i]).attr("id");
+      var hour = parseInt(timeBlockID);
+
+      if (currentHour > hour) {
+        timeBlock.addClass("past");
+      } else if (currentHour === hour) {
+        timeBlock.addClass("present");
+      } else {
+        timeBlock.addClass("future");
+      }
+    }
+  }
+
+  //Renders description on calendar when the page is loaded
+  function renderDescription() {
+    for (let i = 0; i < timeBlocks.length; i++) {
+      //Gets current time block
+      var timeBlockID = $(timeBlocks[i]).attr("id");
+      var description = $(timeBlocks[i]).children(".description");
+      var timeBlockDescription = localStorage.getItem(
+        "Description-" + timeBlockID
+      );
+
+      description.text(timeBlockDescription);
+    }
+  }
+
+  //When clear button clicked, clear local storage
+  function handleClear() {
+    for (let i = 0; i < timeBlocks.length; i++) {
+      var timeBlockID = $(timeBlocks[i]).attr("id");
+      var clear = " ";
+
+      localStorage.setItem("Description-" + timeBlockID, clear);
+    }
+
+    renderDescription();
+  }
+
+  //Adds listener to each button in the calendar
+  for (let i = 0; i < saveButtons.length; i++) {
+    saveButtons[i].addEventListener("click", handleSubmit);
+  }
+
+  //Adds listener to clear button
+  clearButton.addEventListener("click", handleClear);
+});
